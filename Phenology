@@ -1,0 +1,33 @@
+#### Libraries ####
+install.packages("raster")
+library(terra)
+library(pROC)
+library(caret)
+library(sf)
+library(purrr)
+library(tools)
+library(tidyverse)
+library(rsample)
+library(furrr)
+library(pbapply)
+library(tidymodels)
+library(e1071)
+library(ggridges)
+library(gridExtra)
+library(rlang)
+library(rpart.plot)
+library(raster)
+
+#### Functions ####
+
+#### Import data and Preprocessing ####
+
+setwd("/home/alessio/Tirocinio")
+
+NDVI_1km <- list.files(pattern = "c_gls_NDVI_", recursive = T) %>%
+  
+  map(~rast(.))
+
+plot(NDVI_1km[[1]]$NDVI)
+
+NDVI_1km <- map2(NDVI_1km[[1]]$NDVI, ext(0, 50, 0, 50), ~ crop(.x, .y))
