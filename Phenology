@@ -1,5 +1,6 @@
 #### Libraries ####
-install.packages("raster")
+
+library(raster)
 library(terra)
 library(pROC)
 library(caret)
@@ -16,18 +17,34 @@ library(ggridges)
 library(gridExtra)
 library(rlang)
 library(rpart.plot)
-library(raster)
 
 #### Functions ####
 
-#### Import data and Preprocessing ####
+#### Import data ####
 
-setwd("/home/alessio/Tirocinio")
+setwd("C:/Tirocinio")
 
 NDVI_1km <- list.files(pattern = "c_gls_NDVI_", recursive = T) %>%
   
   map(~rast(.))
 
-plot(NDVI_1km[[1]]$NDVI)
 
-NDVI_1km <- map2(NDVI_1km[[1]]$NDVI, ext(0, 50, 0, 50), ~ crop(.x, .y))
+# Get only the NDVI layers
+NDVI <- list()
+
+
+for (i in 1:36) {
+  
+  new_object <- NDVI_1km[[i]]$NDVI
+  
+  NDVI[[paste0("NDVI1km_", i)]] <- new_object   # Add the new object to the list
+  
+}
+
+
+# crop the rasters on EU
+new_extent <- ext(0, 50, 0, 50)
+
+NDVI_cropped <- lapply(NDVI, crop, new_extent)
+
+#### Pre-processing ####
