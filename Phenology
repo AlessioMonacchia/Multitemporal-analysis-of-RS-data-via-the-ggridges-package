@@ -24,27 +24,83 @@ library(rpart.plot)
 
 setwd("C:/Tirocinio")
 
-NDVI_1km <- list.files(pattern = "c_gls_NDVI_", recursive = T) %>%
+# NDVI_1km <- list.files(pattern = "c_gls_NDVI_", recursive = T) %>%
+  
+#  map(~rast(.))
+
+NDVI_300m <- list.files(pattern = "NDVI300", recursive = T) %>%
   
   map(~rast(.))
 
+# select one raster per each month to simplify calculations
 
-# Get only the NDVI layers
-NDVI <- list()
+NDVI_300m <- NDVI_300m[seq(1, length(NDVI_300m), by = 3)]
+
+#Get only the NDVI layers for NDVI 1km
+
+#NDVI <- list()
 
 
-for (i in 1:36) {
+#for (i in 1:36) {
   
-  new_object <- NDVI_1km[[i]]$NDVI
+#  new_object <- NDVI_1km[[i]]$NDVI
   
-  NDVI[[paste0("NDVI1km_", i)]] <- new_object   # Add the new object to the list
+#  NDVI[[paste0("NDVI1km_", i)]] <- new_object   # Add the new object to the list
+  
+#}
+
+#### Pre-processing ####
+
+# crop the rasters on EU
+
+EU_extent <- ext(-11, 30, 35, 47)
+
+# crop the rasters on IT
+
+IT_extent <- ext(7, 19, 36, 47)
+
+NDVI_300m_crop <- lapply(NDVI_300m, crop, IT_extent)
+
+
+# Extract NDVI values
+
+# values_NDVI_300m <- lapply(NDVI_300m_crop, terra::as.data.frame)
+
+values_NDVI_300m <- list()
+
+for (i in 1:12) {
+  
+  new_object <- terra::as.data.frame(NDVI_300m_crop[[i]])
+  
+  values_NDVI_300m[[paste0("NDVI_300m_", i)]] <- new_object
+  
+  values_NDVI_300m[[i]]$month <- as.numeric(paste(i))
+  
+  rm(new_object)
   
 }
 
 
-# crop the rasters on EU
-new_extent <- ext(0, 50, 0, 50)
+# Merge into a single dataframe
 
-NDVI_cropped <- lapply(NDVI, crop, new_extent)
+values_NDVI300_tot <- do.call(rbind, values_NDVI_300m) %>%
+  subset(NDVI >= 0.2 | is.na(NDVI))
 
-#### Pre-processing ####
+
+# order rows according to month
+
+values_NDVI300_tot <- values_NDVI300_tot[order(values_NDVI300_tot$month), ]
+
+values_NDVI300_tot$month <- as.factor(values_NDVI300_tot$month)
+
+#### Ridgeplots ####
+
+ridgeplot_NDVI <- ggplot(values_NDVI300_tot, aes(NDVI, month, fill = factor(stat(quantile)))) +
+  
+  stat_density_ridges(
+    
+    geom = "density_ridges_gradient", calc_ecdf = TRUE,
+    
+    quantiles = 4, quantile_lines = TRUE
+    
+  )
