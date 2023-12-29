@@ -84,6 +84,7 @@ for (i in 1:12) {
 # Merge into a single dataframe
 
 values_NDVI300_tot <- do.call(rbind, values_NDVI_300m) %>%
+  
   subset(NDVI >= 0.2 | is.na(NDVI))
 
 
@@ -91,7 +92,39 @@ values_NDVI300_tot <- do.call(rbind, values_NDVI_300m) %>%
 
 values_NDVI300_tot <- values_NDVI300_tot[order(values_NDVI300_tot$month), ]
 
+
+# Change months names and make month a factor variable for the ridgeplot function requirements
+
+values_NDVI300_tot$month <- replace(values_NDVI300_tot$month,
+                                    
+                                    values_NDVI300_tot$month == 12,
+                                    
+                                    "December")
+
+unique(values_NDVI300_tot$month)
+
+
+"January","February", "April",
+"May", "June", "July", "August",
+"September", "October", "November", "December"
+
+
+values_NDVI300_tot$month == 2,
+values_NDVI300_tot$month == 3,
+values_NDVI300_tot$month == 4,
+values_NDVI300_tot$month == 5,
+values_NDVI300_tot$month == 6,
+values_NDVI300_tot$month == 7,
+values_NDVI300_tot$month == 8,
+values_NDVI300_tot$month == 9,
+values_NDVI300_tot$month == 10,
+values_NDVI300_tot$month == 11,
+values_NDVI300_tot$month == 12
+                                      
+                                      
+                                     
 values_NDVI300_tot$month <- as.factor(values_NDVI300_tot$month)
+
 
 #### Ridgeplots ####
 
@@ -104,3 +137,25 @@ ridgeplot_NDVI <- ggplot(values_NDVI300_tot, aes(NDVI, month, fill = factor(stat
     quantiles = 4, quantile_lines = TRUE
     
   )
+
+
+# Gradient ridgeplot type
+
+ridgeplot_NDVI <- ggplot(values_NDVI300_tot, aes(x = `NDVI`, y = month, fill = after_stat(x))) +
+  
+  geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01, gradient_lwd = 1.) +
+  
+  scale_x_continuous(expand = c(0, 0)) +
+  
+  scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
+  
+  scale_fill_viridis_c(name = "NDVI", option = "C") +
+  
+  labs(
+    title = 'Phenological trend in Italy (2017)',
+    subtitle = 'NDVI by month for 2017'
+  ) +
+  
+  theme_ridges(font_size = 13, grid = TRUE) + 
+  
+  theme(axis.title.y = element_blank())
