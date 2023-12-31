@@ -2,8 +2,6 @@
 
 library(raster)
 library(terra)
-library(pROC)
-library(caret)
 library(sf)
 library(purrr)
 library(tools)
@@ -12,7 +10,6 @@ library(rsample)
 library(furrr)
 library(pbapply)
 library(tidymodels)
-library(e1071)
 library(ggridges)
 library(gridExtra)
 library(rlang)
@@ -22,10 +19,10 @@ library(rpart.plot)
 
 #### Import data ####
 
-setwd("C:/Tirocinio")
+setwd("/home/alessio/Tirocinio")
 
 # NDVI_1km <- list.files(pattern = "c_gls_NDVI_", recursive = T) %>%
-  
+
 #  map(~rast(.))
 
 NDVI_300m <- list.files(pattern = "NDVI300", recursive = T) %>%
@@ -42,11 +39,11 @@ NDVI_300m <- NDVI_300m[seq(1, length(NDVI_300m), by = 3)]
 
 
 #for (i in 1:36) {
-  
+
 #  new_object <- NDVI_1km[[i]]$NDVI
-  
+
 #  NDVI[[paste0("NDVI1km_", i)]] <- new_object   # Add the new object to the list
-  
+
 #}
 
 #### Pre-processing ####
@@ -101,32 +98,20 @@ values_NDVI300_tot$month <- replace(values_NDVI300_tot$month,
                                     
                                     "December")
 
+
+# check the varaible levels
+
 unique(values_NDVI300_tot$month)
 
 
-"January","February", "April",
-"May", "June", "July", "August",
-"September", "October", "November", "December"
+# turn variable into a factor
 
-
-values_NDVI300_tot$month == 2,
-values_NDVI300_tot$month == 3,
-values_NDVI300_tot$month == 4,
-values_NDVI300_tot$month == 5,
-values_NDVI300_tot$month == 6,
-values_NDVI300_tot$month == 7,
-values_NDVI300_tot$month == 8,
-values_NDVI300_tot$month == 9,
-values_NDVI300_tot$month == 10,
-values_NDVI300_tot$month == 11,
-values_NDVI300_tot$month == 12
-                                      
-                                      
-                                     
 values_NDVI300_tot$month <- as.factor(values_NDVI300_tot$month)
 
 
 #### Ridgeplots ####
+
+# Simple ridgeplot with quantiles
 
 ridgeplot_NDVI <- ggplot(values_NDVI300_tot, aes(NDVI, month, fill = factor(stat(quantile)))) +
   
