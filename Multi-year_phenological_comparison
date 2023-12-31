@@ -1,0 +1,152 @@
+#### Libraries ####
+
+library(raster)
+library(terra)
+library(sf)
+library(purrr)
+library(tools)
+library(tidyverse)
+library(furrr)
+library(pbapply)
+library(tidymodels)
+library(ggridges)
+library(gridExtra)
+library(rlang)
+library(rpart.plot)
+library(dplyr)
+library(forcats)
+
+
+#### Import data ####
+
+setwd("/home/alessio/Tirocinio")
+
+# NDVI_1km <- list.files(pattern = "c_gls_NDVI_", recursive = T) %>%
+
+#  map(~rast(.))
+
+NDVI_300m <- list.files(pattern = "NDVI300", recursive = T) %>%
+  
+  map(~rast(.))
+
+# select one raster per each month to simplify calculations
+
+NDVI_300m <- NDVI_300m[seq(1, length(NDVI_300m), by = 6)]
+
+
+#### Pre-processing ####
+
+# crop the rasters on IT
+
+IT_extent <- ext(7, 19, 36, 47)
+
+NDVI_300m_crop <- lapply(NDVI_300m, crop, IT_extent)
+
+# Define the index to split the list
+split_index <- 6
+
+# Split the list into two based on the index
+NDVI_300m_crop1 <- NDVI_300m_crop[1:split_index]
+
+NDVI_300m_crop2 <- NDVI_300m_crop[(split_index + 1):length(NDVI_300m_crop)]
+
+# Extract NDVI values
+
+# values_NDVI_300m <- lapply(NDVI_300m_crop, terra::as.data.frame)
+
+values_NDVI_300_2 <- list()
+
+for (i in 1:6) {
+  
+  new_object <- terra::as.data.frame(NDVI_300m_crop2[[i]])
+  
+  values_NDVI_300_2[[paste0("NDVI_300m_", i)]] <- new_object
+  
+  values_NDVI_300_2[[i]]$month <- as.numeric(paste(i))
+  
+  rm(new_object)
+  
+}
+
+
+# Free some memory for analysis
+
+rm(NDVI_300m, NDVI_300m_crop)
+
+
+# Merge into a single dataframe
+
+values_NDVI300_2 <- do.call(rbind, values_NDVI_300_2) %>%
+  
+  subset(NDVI >= 0.6 | is.na(NDVI))
+
+
+rm(values_NDVI_300_2)
+
+
+values_NDVI300_1 <- values_NDVI300_1 %>%
+  mutate(year = "2014")
+
+values_NDVI300_2 <- values_NDVI300_2 %>%
+  mutate(year = "2017")
+
+
+values_NDVI300 <- rbind(values_NDVI300_1, values_NDVI300_2)
+
+
+rm(values_NDVI300_1, values_NDVI300_2)
+rm(NDVI_300m_crop1, NDVI_300m_crop2)
+
+# Order rows according to month
+
+values_NDVI300 <- values_NDVI300[order(values_NDVI300$month), ]
+
+
+# Change months names and make month a factor variable for the ridgeplot function requirements
+
+values_NDVI300$month <- replace(values_NDVI300$month,
+                                    
+                                values_NDVI300$month == 1,
+                                    
+                                    "December")
+
+
+# check the varaible levels
+
+unique(values_NDVI300$month)
+
+
+# turn variable into a factor
+
+values_NDVI300$month <- as.factor(values_NDVI300$month)
+
+
+#### Ridgeplots ####
+
+values_NDVI300 %>%
+  
+  ggplot(aes(y = month)) +
+  
+  geom_density_ridges(aes(x = NDVI, fill = paste(month, year)),
+                      
+                      alpha = 0.8, color = "white") +
+  
+  labs(x = "Month",
+       y = "NDVI",
+       title = "2014-2017 phenological trend comparison") +
+  
+  scale_y_discrete(expand = c(0, 0)) +
+  
+  scale_x_continuous(expand = c(0, 0)) +
+  
+  scale_fill_cyclical(breaks = c("1980 Indy", "1980 Unionist"),
+                      
+                      labels = c('1980 Indy' = "Indy", '1980 Unionist' = "Unionist"),
+                      
+                      values = c("#ff0000", "#0000ff", "#ff8080", "#8080ff"),
+                      
+                      name = "Year", guide = "legend") +
+  
+  coord_cartesian(clip = "off") +
+
+  theme_ridges(grid = F)
