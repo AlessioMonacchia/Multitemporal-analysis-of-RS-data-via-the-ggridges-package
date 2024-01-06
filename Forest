@@ -57,6 +57,23 @@ montesole <- crop(montesole, buffer)
 
 # Extract Values ----
 
-df_montesole <- terra::extract(montesole, foreste)
+df_montesole <- terra::extract(montesole, foreste, df = TRUE)
+
+df_montesole <- map(df_montesole, ~{
+  colnames(.) <- c("ID_poly", paste0("banda_", 1:(ncol(.)-1)))
+  .
+})
+
+
+str(df_montesole)
+
+unique(df_montesole$ID)
+
+foreste$TIPO_CARTA
+
+df_montesole$governo <- foreste$TIPO_CARTA
+
 
 df_montesole_unified <- bind_rows(df_montesole)
+
+df_montesole[[1]]
