@@ -55,10 +55,10 @@ montesole <- projectRaster(montesole, crs = crs(buffer)) # crop raster on vector
 
 montesole <- crop(montesole, buffer)
 
+
 # Extract Values ----
 
 df_montesole <- terra::extract(montesole, foreste, df = TRUE)
-
 
 # modify column names
 
@@ -66,7 +66,6 @@ df_montesole <- terra::extract(montesole, foreste, df = TRUE)
 #   colnames(.) <- c("ID_poly", paste0("banda_", 1:(ncol(.)-1)))
 #   .
 # })
-
 
 # add a column with information from original forest chart polygons
 
