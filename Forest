@@ -58,3 +58,5 @@ montesole <- crop(montesole, buffer)
 # Extract Values ----
 
 df_montesole <- terra::extract(montesole, foreste)
+
+df_montesole_unified <- bind_rows(df_montesole)
