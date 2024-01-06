@@ -1,0 +1,60 @@
+# Libraries ----
+
+library(raster)
+library(terra)
+library(sf)
+library(purrr)
+library(tools)
+library(tidyverse)
+library(furrr)
+library(pbapply)
+library(tidymodels)
+library(ggridges)
+library(gridExtra)
+library(rlang)
+library(rpart.plot)
+library(dplyr)
+library(forcats)
+
+# Import data----
+
+montesole <- stack("/home/alessio/Tirocinio/Foresta/montesole.tif") # stack o brick per importare più immagini o una sola immagine con diverse bande
+
+buffer <- st_read("/home/alessio/Tirocinio/Foresta/Study_area.gpkg")
+
+foreste <- st_read("/home/alessio/Tirocinio/Foresta/AreeForestali2014BO.shp")
+
+
+# Pre-processing ----
+
+# Print the CRS of 'foreste' and 'buffer'
+print(st_crs(foreste))
+print(st_crs(buffer))
+
+# If the CRS is not the same, you need to reproject one of them to match the other
+# For example, if 'buffer' has a different CRS than 'foreste', you can reproject 'buffer' to the CRS of 'foreste'
+foreste <- st_transform(foreste, crs = st_crs(buffer))
+
+# Now, the CRS should be the same
+print(st_crs(foreste))
+print(st_crs(buffer))
+
+# Check validity of geometries
+print(st_is_valid(foreste))
+print(st_is_valid(buffer))
+
+# Fix invalid geometries
+foreste <- st_make_valid(foreste)
+
+# Crop foreste according to Monte Sole buffer
+foreste <- st_intersection(foreste, buffer)
+
+# Crop montesole tif according to Monte Sole buffer
+
+montesole <- projectRaster(montesole, crs = crs(buffer)) # crop raster on vector specifying the crs when those differ
+
+montesole <- crop(montesole, buffer)
+
+# Extract Values ----
+
+df_montesole <- terra::extract(montesole, foreste)
