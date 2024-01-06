@@ -59,21 +59,15 @@ montesole <- crop(montesole, buffer)
 
 df_montesole <- terra::extract(montesole, foreste, df = TRUE)
 
-df_montesole <- map(df_montesole, ~{
-  colnames(.) <- c("ID_poly", paste0("banda_", 1:(ncol(.)-1)))
-  .
-})
+
+# modify column names
+
+# df_montesole <- map(df_montesole, ~{
+#   colnames(.) <- c("ID_poly", paste0("banda_", 1:(ncol(.)-1)))
+#   .
+# })
 
 
-str(df_montesole)
+# add a column with information from original forest chart polygons
 
-unique(df_montesole$ID)
-
-foreste$TIPO_CARTA
-
-df_montesole$governo <- foreste$TIPO_CARTA
-
-
-df_montesole_unified <- bind_rows(df_montesole)
-
-df_montesole[[1]]
+df_montesole$governo <- foreste$TIPO_CARTA[as.character(df_montesole$ID)]
