@@ -16,7 +16,6 @@ library(rpart.plot)
 library(dplyr)
 library(forcats)
 
-
 # Import data----
 
 montesole <- stack("/home/alessio/Tirocinio/Foresta/montesole.tif") # stack o brick per importare più immagini o una sola immagine con diverse bande
@@ -24,7 +23,6 @@ montesole <- stack("/home/alessio/Tirocinio/Foresta/montesole.tif") # stack o br
 foreste <- st_read("/home/alessio/Tirocinio/Foresta/AreeForestali2014BO.shp")
 
 leo <- st_read("/home/alessio/Tirocinio/Foresta/leo.gpkg")
-
 
 # Pre-processing ----
 
@@ -99,21 +97,40 @@ df_montesole$specie <- foreste$PRIMA_SP[df_montesole$ID]  # add the new column
 unique(df_montesole$specie) # check results
 
 
-# Ridgeplot ----
+# Ridgeplots ----
+
+# Ridgeplot on single spectral band
 
 df_montesole %>%
-  ggplot(aes(y = governo)) +
-  geom_density_ridges(aes(x = montesole_1, fill = specie),
-                      
+  ggplot(aes(y = specie)) +
+  geom_density_ridges(aes(x = montesole_3, fill = governo),
                       alpha = 0.8, color = "white") +
-  labs(x = "band_1",
+  labs(x = "band_3",
        y = "governo",
-       title = "difference in band_1 depending on governo") +
+       title = "difference in band_3 depending on governo") +
   scale_y_discrete(expand = c(0, 0)) +
   scale_x_continuous(expand = c(0, 0)) +
-  # scale_fill_cyclical(breaks = c("1980 Indy", "1980 Unionist"),
-  #                     labels = c('1980 Indy' = "Indy", '1980 Unionist' = "Unionist"),
-  #                     values = c("#ff0000", "#0000ff", "#ff8080", "#8080ff"),
-  #                     name = "Year", guide = "legend") +
   coord_cartesian(clip = "off") +
-  theme_ridges(grid = F) 
+  theme_ridges(grid = F)
+
+
+# Ridgeplot on multiple spectral bands
+
+# Stack columns bands into a single column: transform the dataframe from wide to long format
+df_montesole_stacked <- df_montesole %>%
+  pivot_longer(cols = c(montesole_1, montesole_2, montesole_3), names_to = "Band", values_to = "Value") %>%
+  arrange(ID) %>%
+  as.factor(df_montesole_stacked$Band)
+
+# here the ridgeplot
+df_montesole_stacked %>%
+  ggplot(aes(y = governo)) +
+  geom_density_ridges(aes(x = Value, fill = Band),
+                      alpha = 0.8, color = "white") +
+  labs(x = "Bands",
+       y = "governo",
+       title = "difference in spectral bands depending on governo") +
+  scale_y_discrete(expand = c(0, 0)) +
+  scale_x_continuous(expand = c(0, 0)) +
+  coord_cartesian(clip = "off") +
+  theme_ridges(grid = F)
