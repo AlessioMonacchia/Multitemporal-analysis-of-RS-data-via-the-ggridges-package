@@ -1,20 +1,12 @@
 # Libraries ----
 
+library(sf)
 library(raster)
 library(terra)
-library(sf)
 library(purrr)
-library(tools)
-library(tidyverse)
 library(furrr)
-library(pbapply)
-library(tidymodels)
 library(ggridges)
-library(gridExtra)
-library(rlang)
-library(rpart.plot)
-library(dplyr)
-library(forcats)
+library(tidyverse)
 
 # Import data----
 
