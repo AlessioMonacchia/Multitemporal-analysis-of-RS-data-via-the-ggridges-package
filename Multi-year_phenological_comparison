@@ -2,18 +2,10 @@
 
 library(raster)
 library(terra)
-library(sf)
 library(purrr)
-library(tools)
-library(tidyverse)
 library(furrr)
-library(pbapply)
-library(tidymodels)
 library(ggridges)
-library(gridExtra)
-library(rlang)
-library(rpart.plot)
-library(dplyr)
+library(tidyverse)
 library(forcats)
 
 
@@ -42,17 +34,31 @@ IT_extent <- ext(7, 19, 36, 47)
 
 NDVI_300m_crop <- lapply(NDVI_300m, crop, IT_extent)
 
-# Define the index to split the list
+# Define the index to split the list (the index should equal the number of Rasters available per year)
+
 split_index <- 6
 
 # Split the list into two based on the index
+
 NDVI_300m_crop1 <- NDVI_300m_crop[1:split_index]
 
 NDVI_300m_crop2 <- NDVI_300m_crop[(split_index + 1):length(NDVI_300m_crop)]
 
 # Extract NDVI values
 
-# values_NDVI_300m <- lapply(NDVI_300m_crop, terra::as.data.frame)
+values_NDVI_300_1 <- list()
+
+for (i in 1:6) {
+  
+  new_object <- terra::as.data.frame(NDVI_300m_crop1[[i]])
+  
+  values_NDVI_300_1[[paste0("NDVI_300m_", i)]] <- new_object
+  
+  values_NDVI_300_1[[i]]$month <- as.numeric(paste(i))
+  
+  rm(new_object)
+  
+}
 
 values_NDVI_300_2 <- list()
 
@@ -74,15 +80,22 @@ for (i in 1:6) {
 rm(NDVI_300m, NDVI_300m_crop)
 
 
-# Merge into a single dataframe
+# Merge into two dataframes
+
+values_NDVI300_1 <- do.call(rbind, values_NDVI_300_1) %>%
+  
+  subset(NDVI >= 0.6 | is.na(NDVI))
+
+rm(values_NDVI_300_1)
+
 
 values_NDVI300_2 <- do.call(rbind, values_NDVI_300_2) %>%
   
   subset(NDVI >= 0.6 | is.na(NDVI))
 
-
 rm(values_NDVI_300_2)
 
+# add a column indicating the year of reference
 
 values_NDVI300_1 <- values_NDVI300_1 %>%
   mutate(year = "2014")
@@ -90,12 +103,13 @@ values_NDVI300_1 <- values_NDVI300_1 %>%
 values_NDVI300_2 <- values_NDVI300_2 %>%
   mutate(year = "2017")
 
+rm(NDVI_300m_crop1, NDVI_300m_crop2)
+
+# merge the two dataframes
 
 values_NDVI300 <- rbind(values_NDVI300_1, values_NDVI300_2)
 
-
 rm(values_NDVI300_1, values_NDVI300_2)
-rm(NDVI_300m_crop1, NDVI_300m_crop2)
 
 # Order rows according to month
 
@@ -111,7 +125,7 @@ values_NDVI300$month <- replace(values_NDVI300$month,
                                     "December")
 
 
-# check the varaible levels
+# check the variable month levels
 
 unique(values_NDVI300$month)
 
@@ -127,21 +141,21 @@ values_NDVI300 %>%
   
   ggplot(aes(y = month)) +
   
-  geom_density_ridges(aes(x = NDVI, fill = paste(month, year)),
+  geom_density_ridges(aes(x = NDVI, fill = paste(month, year)),    # year
                       
                       alpha = 0.8, color = "white") +
   
-  labs(x = "Month",
-       y = "NDVI",
+  labs(x = "NDVI",
+       y = "Month",
        title = "2014-2017 phenological trend comparison") +
   
   scale_y_discrete(expand = c(0, 0)) +
   
   scale_x_continuous(expand = c(0, 0)) +
   
-  scale_fill_cyclical(breaks = c("1980 Indy", "1980 Unionist"),
+  scale_fill_cyclical(#breaks = c("1980 Indy", "1980 Unionist"),
                       
-                      labels = c('1980 Indy' = "Indy", '1980 Unionist' = "Unionist"),
+                      #labels = c('1980 Indy' = "Indy", '1980 Unionist' = "Unionist"),
                       
                       values = c("#ff0000", "#0000ff", "#ff8080", "#8080ff"),
                       
