@@ -1,37 +1,35 @@
-#### Libraries ####
+## Libraries ####
 
 library(raster)
 library(terra)
-library(sf)
 library(purrr)
-library(tools)
-library(tidyverse)
-library(rsample)
 library(furrr)
-library(pbapply)
-library(tidymodels)
 library(ggridges)
-library(gridExtra)
-library(rlang)
-library(rpart.plot)
+library(tidyverse)
 
-#### Functions ####
 
-#### Import data ####
+## Functions ####
+
+
+## Import data ####
 
 setwd("/home/alessio/Tirocinio")
+
 
 # NDVI_1km <- list.files(pattern = "c_gls_NDVI_", recursive = T) %>%
 
 #  map(~rast(.))
 
-NDVI_300m <- list.files(pattern = "NDVI300", recursive = T) %>%
+
+NDVI_300m <- list.files(pattern = "NDVI300_2014", recursive = T) %>%
   
   map(~rast(.))
+
 
 # select one raster per each month to simplify calculations
 
 NDVI_300m <- NDVI_300m[seq(1, length(NDVI_300m), by = 3)]
+
 
 #Get only the NDVI layers for NDVI 1km
 
@@ -46,11 +44,14 @@ NDVI_300m <- NDVI_300m[seq(1, length(NDVI_300m), by = 3)]
 
 #}
 
-#### Pre-processing ####
+
+## Pre-processing ####
+
 
 # crop the rasters on EU
 
 EU_extent <- ext(-11, 30, 35, 47)
+
 
 # crop the rasters on IT
 
@@ -59,9 +60,7 @@ IT_extent <- ext(7, 19, 36, 47)
 NDVI_300m_crop <- lapply(NDVI_300m, crop, IT_extent)
 
 
-# Extract NDVI values
-
-# values_NDVI_300m <- lapply(NDVI_300m_crop, terra::as.data.frame)
+# Extract NDVI values in a list
 
 values_NDVI_300m <- list()
 
@@ -71,18 +70,18 @@ for (i in 1:12) {
   
   values_NDVI_300m[[paste0("NDVI_300m_", i)]] <- new_object
   
-  values_NDVI_300m[[i]]$month <- as.numeric(paste(i))
+  values_NDVI_300m[[i]]$month <- as.numeric(paste(i))  # create a column reporting the month of reference for each NDVI value
   
   rm(new_object)
   
 }
 
 
-# Merge into a single dataframe
+# Merge list objects into a single dataframe
 
 values_NDVI300_tot <- do.call(rbind, values_NDVI_300m) %>%
   
-  subset(NDVI >= 0.2 | is.na(NDVI))
+  subset(NDVI >= 0.2 | is.na(NDVI)) # set the condition excluding uninteresting cover types
 
 
 # order rows according to month
@@ -94,9 +93,9 @@ values_NDVI300_tot <- values_NDVI300_tot[order(values_NDVI300_tot$month), ]
 
 values_NDVI300_tot$month <- replace(values_NDVI300_tot$month,
                                     
-                                    values_NDVI300_tot$month == 12,
+                                    values_NDVI300_tot$month == 1,
                                     
-                                    "December")
+                                    "January")
 
 
 # check the varaible levels
@@ -104,14 +103,15 @@ values_NDVI300_tot$month <- replace(values_NDVI300_tot$month,
 unique(values_NDVI300_tot$month)
 
 
-# turn variable into a factor
+# turn variable month into a factor
 
 values_NDVI300_tot$month <- as.factor(values_NDVI300_tot$month)
 
 
-#### Ridgeplots ####
+## Ridgeplots ####
 
-# Simple ridgeplot with quantiles
+
+# Simple NDVI ridgeplot with quantiles
 
 ridgeplot_NDVI <- ggplot(values_NDVI300_tot, aes(NDVI, month, fill = factor(stat(quantile)))) +
   
@@ -125,6 +125,8 @@ ridgeplot_NDVI <- ggplot(values_NDVI300_tot, aes(NDVI, month, fill = factor(stat
 
 
 # Gradient ridgeplot type
+
+rm(NDVI_300m, NDVI_300m_crop, values_NDVI_300m)
 
 ridgeplot_NDVI <- ggplot(values_NDVI300_tot, aes(x = `NDVI`, y = month, fill = after_stat(x))) +
   
