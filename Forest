@@ -113,14 +113,31 @@ df_montesole_stacked <- df_montesole %>%
   as.factor(df_montesole_stacked$Band)
 
 # here the multi-band Ridgeplot
+
+# according to management
+
 df_montesole_stacked %>%
   ggplot(aes(y = governo)) +
   geom_density_ridges(aes(x = Value, fill = Band),
                       alpha = 0.8, color = "white") +
-  labs(x = "Bands",
-       y = "governo",
-       title = "difference in spectral bands depending on governo") +
+  labs(x = "Reflectance",
+       y = "Forest management",
+       title = "Difference in spectral bands depending on forest management") +
   scale_y_discrete(expand = c(0, 0)) +
   scale_x_continuous(expand = c(0, 0)) +
   coord_cartesian(clip = "off") +
-  theme_ridges(grid = F)
+  theme_ridges(grid = T)
+
+# according to species
+
+df_montesole_stacked %>%
+  ggplot(aes(y = specie)) +
+  geom_density_ridges(aes(x = Value, fill = Band),
+                      alpha = 0.8, color = "white") +
+  labs(x = "Reflectance",
+       y = "First species",
+       title = "Difference in spectral bands depending on forest main species") +
+  scale_y_discrete(expand = c(0, 0)) +
+  scale_x_continuous(expand = c(0, 0)) +
+  coord_cartesian(clip = "off") +
+  theme_ridges(grid = T)
