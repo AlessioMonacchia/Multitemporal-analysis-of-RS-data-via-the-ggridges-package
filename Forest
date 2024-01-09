@@ -22,8 +22,8 @@ leo <- st_read("/home/alessio/Tirocinio/Foresta/leo.gpkg")
 print(st_crs(foreste))
 print(st_crs(buffer))
 
-# If the CRS is not the same, you need to reproject one of them to match the other
-# For example, if 'buffer' has a different CRS than 'foreste', you can reproject 'buffer' to the CRS of 'foreste'
+# If the CRS is not the same, reproject one of them to match the other
+# For example, if 'buffer' has a different CRS than 'foreste', reproject 'buffer' to the CRS of 'foreste'
 foreste <- st_transform(foreste, crs = st_crs(leo))
 
 # Now, the CRS should be the same
@@ -41,8 +41,6 @@ foreste <- st_make_valid(foreste)
 foreste <- st_intersection(foreste, leo)
 
 plot(foreste)
-
-foreste$OBJECTID
 
 # Crop montesole (raster) tif according to Monte Sole buffer (vector)
 
@@ -75,16 +73,16 @@ df_montesole$montesole_4 <- NULL  # remove useless column
 # })
 
 
-# add a column with information from original forest chart polygons
+# add columns with information from original forest chart polygons
 
-unique(df_montesole$ID)     # check variable leves
+unique(df_montesole$ID)     # check variable levels
 unique(foreste$TIPO_CARTA)
 
 foreste$TIPO_CARTA <- as.factor(foreste$TIPO_CARTA) # transform variables into factors (not sure it is necessary)
 foreste$PRIMA_SP <- as.factor(foreste$PRIMA_SP)
 df_montesole$ID <- as.factor(df_montesole$ID)
 
-df_montesole$specie <- foreste$PRIMA_SP[df_montesole$ID]  # add the new column
+df_montesole$specie <- foreste$PRIMA_SP[df_montesole$ID]  # add the new species column
 
 unique(df_montesole$specie) # check results
 
@@ -114,7 +112,7 @@ df_montesole_stacked <- df_montesole %>%
   arrange(ID) %>%
   as.factor(df_montesole_stacked$Band)
 
-# here the ridgeplot
+# here the multi-band Ridgeplot
 df_montesole_stacked %>%
   ggplot(aes(y = governo)) +
   geom_density_ridges(aes(x = Value, fill = Band),
