@@ -67,15 +67,17 @@ df_montesole$montesole_4 <- NULL  # remove useless column
 
 unique(df_montesole$ID)     # check variable levels
 unique(foreste$TIPO_CARTA)
+unique(foreste$PRIMA_SP)
 
 foreste$TIPO_CARTA <- as.factor(foreste$TIPO_CARTA) # transform variables into factors (not sure it is necessary)
 foreste$PRIMA_SP <- as.factor(foreste$PRIMA_SP)
 df_montesole$ID <- as.factor(df_montesole$ID)
 
 df_montesole$specie <- foreste$PRIMA_SP[df_montesole$ID]  # add the new species column
+df_montesole$management <- foreste$TIPO_CARTA[df_montesole$ID]  # add the management column
 
 unique(df_montesole$specie) # check results
-
+unique(df_montesole$management)
 
 # Ridgeplots ----
 
@@ -83,9 +85,9 @@ unique(df_montesole$specie) # check results
 
 df_montesole %>%
   ggplot(aes(y = specie)) +
-  geom_density_ridges(aes(x = montesole_3, fill = governo),
+  geom_density_ridges(aes(x = montesole_1, fill = governo),
                       alpha = 0.8, color = "white") +
-  labs(x = "band_3",
+  labs(x = "band_1",
        y = "governo",
        title = "difference in band_3 depending on governo") +
   scale_x_continuous(expand = c(0, 0)) +
@@ -98,10 +100,15 @@ df_montesole %>%
 # Ridgeplot on multiple spectral bands
 
 # Stack columns bands into a single column: transform the dataframe from wide to long format
+
 df_montesole_stacked <- df_montesole %>%
   pivot_longer(cols = c(montesole_1, montesole_2, montesole_3), names_to = "Band", values_to = "Value") %>%
   arrange(ID) %>%
   as.factor(df_montesole_stacked$Band)
+
+# free some memory if necessary
+
+rm(df_montesole)
 
 # here the multi-band Ridgeplot
 
