@@ -23,7 +23,7 @@ NDVI_300m <- list.files(pattern = "NDVI300", recursive = T) %>%
 
 # select one raster per each month to simplify calculations
 
-NDVI_300m <- NDVI_300m[seq(1, length(NDVI_300m), by = 6)]
+NDVI_300m <- NDVI_300m[seq(1, length(NDVI_300m), by = 3)]
 
 
 #### Pre-processing ####
@@ -36,39 +36,43 @@ NDVI_300m_crop <- lapply(NDVI_300m, crop, IT_extent)
 
 # Define the index to split the list (the index should equal the number of Rasters available per year)
 
-split_index <- 6
+split_index <- 12
 
 # Split the list into two based on the index
 
-NDVI_300m_crop1 <- NDVI_300m_crop[1:split_index]
+NDVI_300m_crop14 <- NDVI_300m_crop[1:split_index]
 
-NDVI_300m_crop2 <- NDVI_300m_crop[(split_index + 1):length(NDVI_300m_crop)]
+NDVI_300m_crop17 <- NDVI_300m_crop[(split_index + 1):length(NDVI_300m_crop)]
+
+# Free some memory for analysis
+
+rm(NDVI_300m, NDVI_300m_crop)
 
 # Extract NDVI values
 
-values_NDVI_300_1 <- list()
+values_NDVI_300_14 <- list()
 
-for (i in 1:6) {
+for (i in 1:12) {
   
-  new_object <- terra::as.data.frame(NDVI_300m_crop1[[i]])
+  new_object <- terra::as.data.frame(NDVI_300m_crop14[[i]])
   
-  values_NDVI_300_1[[paste0("NDVI_300m_", i)]] <- new_object
+  values_NDVI_300_14[[paste0("NDVI_300m_", i)]] <- new_object
   
-  values_NDVI_300_1[[i]]$month <- as.numeric(paste(i))
+  values_NDVI_300_14[[i]]$month <- as.numeric(paste(i))
   
   rm(new_object)
   
 }
 
-values_NDVI_300_2 <- list()
+values_NDVI_300_17 <- list()
 
-for (i in 1:6) {
+for (i in 1:12) {
   
-  new_object <- terra::as.data.frame(NDVI_300m_crop2[[i]])
+  new_object <- terra::as.data.frame(NDVI_300m_crop17[[i]])
   
-  values_NDVI_300_2[[paste0("NDVI_300m_", i)]] <- new_object
+  values_NDVI_300_17[[paste0("NDVI_300m_", i)]] <- new_object
   
-  values_NDVI_300_2[[i]]$month <- as.numeric(paste(i))
+  values_NDVI_300_17[[i]]$month <- as.numeric(paste(i))
   
   rm(new_object)
   
@@ -77,39 +81,39 @@ for (i in 1:6) {
 
 # Free some memory for analysis
 
-rm(NDVI_300m, NDVI_300m_crop)
-
+rm(NDVI_300m_crop14, NDVI_300m_crop17)
 
 # Merge into two dataframes
 
-values_NDVI300_1 <- do.call(rbind, values_NDVI_300_1) %>%
+values_NDVI300_14 <- do.call(rbind, values_NDVI_300_14) %>%
   
-  subset(NDVI >= 0.6 | is.na(NDVI))
-
-rm(values_NDVI_300_1)
+  subset(NDVI >= 0.6 | is.na(NDVI)) # subset according to NDVI of interest
 
 
-values_NDVI300_2 <- do.call(rbind, values_NDVI_300_2) %>%
+values_NDVI300_17 <- do.call(rbind, values_NDVI_300_17) %>%
   
-  subset(NDVI >= 0.6 | is.na(NDVI))
+  subset(NDVI >= 0.6 | is.na(NDVI)) # subset according to NDVI of interest
 
-rm(values_NDVI_300_2)
+
+# Free some memory for analysis
+
+rm(values_NDVI_300_14, values_NDVI_300_17)
 
 # add a column indicating the year of reference
 
-values_NDVI300_1 <- values_NDVI300_1 %>%
+values_NDVI300_14 <- values_NDVI300_14 %>%
   mutate(year = "2014")
 
-values_NDVI300_2 <- values_NDVI300_2 %>%
+values_NDVI300_17 <- values_NDVI300_17 %>%
   mutate(year = "2017")
-
-rm(NDVI_300m_crop1, NDVI_300m_crop2)
 
 # merge the two dataframes
 
-values_NDVI300 <- rbind(values_NDVI300_1, values_NDVI300_2)
+values_NDVI300 <- rbind(values_NDVI300_14, values_NDVI300_17)
 
-rm(values_NDVI300_1, values_NDVI300_2)
+# Free some memory for analysis
+
+rm(values_NDVI300_14, values_NDVI300_17)
 
 # Order rows according to month
 
@@ -118,11 +122,11 @@ values_NDVI300 <- values_NDVI300[order(values_NDVI300$month), ]
 
 # Change months names and make month a factor variable for the ridgeplot function requirements
 
-values_NDVI300$month <- replace(values_NDVI300$month,
-                                    
-                                values_NDVI300$month == 1,
-                                    
-                                    "December")
+# values_NDVI300$month <- replace(values_NDVI300$month,
+#                                     
+#                                 values_NDVI300$month == 1,
+#                                     
+#                                     "December")
 
 
 # check the variable month levels
@@ -138,29 +142,15 @@ values_NDVI300$month <- as.factor(values_NDVI300$month)
 #### Ridgeplots ####
 
 values_NDVI300 %>%
-  
   ggplot(aes(y = month)) +
-  
-  geom_density_ridges(aes(x = NDVI, fill = paste(month, year)),    # year
-                      
+  geom_density_ridges(aes(x = NDVI, fill = year),    # paste(month, year)
                       alpha = 0.8, color = "white") +
-  
   labs(x = "NDVI",
        y = "Month",
-       title = "2014-2017 phenological trend comparison") +
-  
-  scale_y_discrete(expand = c(0, 0)) +
-  
+       title = 'Comparison of phenological trend in Italy (2014-2017)',
+       subtitle = 'NDVI by month comparison for 2014-2017') +
   scale_x_continuous(expand = c(0, 0)) +
-  
-  scale_fill_cyclical(#breaks = c("1980 Indy", "1980 Unionist"),
-                      
-                      #labels = c('1980 Indy' = "Indy", '1980 Unionist' = "Unionist"),
-                      
-                      values = c("#ff0000", "#0000ff", "#ff8080", "#8080ff"),
-                      
-                      name = "Year", guide = "legend") +
-  
+  scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
+  #scale_fill_viridis_c(name = "Year", option = "C") +
   coord_cartesian(clip = "off") +
-
-  theme_ridges(grid = F)
+  theme_ridges(font_size = 13, grid = TRUE)-
