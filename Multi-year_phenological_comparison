@@ -153,4 +153,4 @@ values_NDVI300 %>%
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
   #scale_fill_viridis_c(name = "Year", option = "C") +
   coord_cartesian(clip = "off") +
-  theme_ridges(font_size = 13, grid = TRUE)-
+  theme_ridges(font_size = 13, grid = TRUE)
