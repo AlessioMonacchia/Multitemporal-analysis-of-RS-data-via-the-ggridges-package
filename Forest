@@ -12,9 +12,10 @@ library(tidyverse)
 
 montesole <- stack("/home/alessio/Tirocinio/Foresta/montesole.tif") # stack o brick per importare più immagini o una sola immagine con diverse bande
 
+buffer <- st_read("/home/alessio/Tirocinio/Foresta/Study_area.gpkg")
+
 foreste <- st_read("/home/alessio/Tirocinio/Foresta/AreeForestali2014BO.shp")
 
-leo <- st_read("/home/alessio/Tirocinio/Foresta/leo.gpkg")
 
 # Pre-processing ----
 
@@ -22,9 +23,9 @@ leo <- st_read("/home/alessio/Tirocinio/Foresta/leo.gpkg")
 print(st_crs(foreste))
 print(st_crs(buffer))
 
-# If the CRS is not the same, reproject one of them to match the other
-# For example, if 'buffer' has a different CRS than 'foreste', reproject 'buffer' to the CRS of 'foreste'
-foreste <- st_transform(foreste, crs = st_crs(leo))
+# If the CRS is not the same, you need to reproject one of them to match the other
+# For example, if 'buffer' has a different CRS than 'foreste', you can reproject 'buffer' to the CRS of 'foreste'
+foreste <- st_transform(foreste, crs = st_crs(buffer))
 
 # Now, the CRS should be the same
 print(st_crs(foreste))
@@ -32,38 +33,27 @@ print(st_crs(buffer))
 
 # Check validity of geometries
 print(st_is_valid(foreste))
-print(st_is_valid(leo))
+print(st_is_valid(buffer))
 
 # Fix invalid geometries
 foreste <- st_make_valid(foreste)
 
 # Crop foreste according to Monte Sole buffer
-foreste <- st_intersection(foreste, leo)
+foreste <- st_intersection(foreste, buffer)
 
-plot(foreste)
+# Crop montesole tif according to Monte Sole buffer
 
-# Crop montesole (raster) tif according to Monte Sole buffer (vector)
+montesole <- projectRaster(montesole, crs = crs(buffer)) # here we change the montesole crs to match with buffer crs
 
-plot(leo)
+montesole <- crop(montesole, buffer)
 
-montesole <- projectRaster(montesole, crs = crs(leo)) # here we change the montesole crs to match with buffer crs
-
-montesole <- crop(montesole, leo)
-
-montesole <- mask(montesole, leo)
-
-plot(montesole)
-
+montesole <- mask(montesole, buffer)
 
 # Extract Values ----
 
 df_montesole <- terra::extract(montesole, foreste, df = TRUE)
 
-unique(df_montesole$ID)
-
-
 df_montesole$montesole_4 <- NULL  # remove useless column
-
 
 # modify column names
 
@@ -98,10 +88,11 @@ df_montesole %>%
   labs(x = "band_3",
        y = "governo",
        title = "difference in band_3 depending on governo") +
-  scale_y_discrete(expand = c(0, 0)) +
   scale_x_continuous(expand = c(0, 0)) +
+  scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
+  scale_fill_viridis_c(name = "NDVI", option = "C") +
   coord_cartesian(clip = "off") +
-  theme_ridges(grid = F)
+  theme_ridges(grid = T)
 
 
 # Ridgeplot on multiple spectral bands
@@ -123,8 +114,8 @@ df_montesole_stacked %>%
   labs(x = "Reflectance",
        y = "Forest management",
        title = "Difference in spectral bands depending on forest management") +
-  scale_y_discrete(expand = c(0, 0)) +
   scale_x_continuous(expand = c(0, 0)) +
+  scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
   coord_cartesian(clip = "off") +
   theme_ridges(grid = T)
 
@@ -137,7 +128,7 @@ df_montesole_stacked %>%
   labs(x = "Reflectance",
        y = "First species",
        title = "Difference in spectral bands depending on forest main species") +
-  scale_y_discrete(expand = c(0, 0)) +
   scale_x_continuous(expand = c(0, 0)) +
+  scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
   coord_cartesian(clip = "off") +
   theme_ridges(grid = T)
