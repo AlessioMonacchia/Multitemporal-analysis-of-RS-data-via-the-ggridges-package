@@ -48,7 +48,7 @@ NDVI_300m <- NDVI_300m[seq(1, length(NDVI_300m), by = 3)]
 
 # crop the rasters on EU
 
-EU_extent <- ext(-11, 30, 35, 47)
+# EU_extent <- ext(-11, 30, 35, 47)
 
 
 # crop the rasters on IT
