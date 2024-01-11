@@ -12,7 +12,7 @@ library(tidyverse)
 
 montesole <- stack("/home/alessio/Tirocinio/Foresta/montesole.tif") # stack o brick per importare più immagini o una sola immagine con diverse bande
 
-buffer <- st_read("/home/alessio/Tirocinio/Foresta/Study_area.gpkg")
+buffer <- st_read("/home/alessio/Tirocinio/Foresta/buffer_c.shp")
 
 foreste <- st_read("/home/alessio/Tirocinio/Foresta/AreeForestali2014BO.shp")
 
@@ -55,12 +55,7 @@ df_montesole <- terra::extract(montesole, foreste, df = TRUE)
 
 df_montesole$montesole_4 <- NULL  # remove useless column
 
-# modify column names
-
-# df_montesole <- map(df_montesole, ~{
-#   colnames(.) <- c("ID_poly", paste0("banda_", 1:(ncol(.)-1)))
-#   .
-# })
+colnames(df_montesole) <- c("ID", "Red", "Green", "Blue", "Species", "Management")  # modify column names
 
 
 # add columns with information from original forest chart polygons
@@ -79,32 +74,34 @@ df_montesole$management <- foreste$TIPO_CARTA[df_montesole$ID]  # add the manage
 unique(df_montesole$specie) # check results
 unique(df_montesole$management)
 
+
 # Ridgeplots ----
 
 # Ridgeplot on single spectral band
 
 df_montesole %>%
-  ggplot(aes(y = specie)) +
-  geom_density_ridges(aes(x = montesole_1, fill = governo),
+  ggplot(aes(y = Species)) +
+  geom_density_ridges(aes(x = Blue, fill = Management),
                       alpha = 0.8, color = "white") +
-  labs(x = "band_1",
-       y = "governo",
-       title = "difference in band_3 depending on governo") +
-  scale_x_continuous(expand = c(0, 0)) +
+  labs(x = "Blue band reflectance",
+       y = "Main species",
+       title = "Blue band reflectance conditional on main species and forest management") +
+  scale_x_continuous(expand = c(0, 0), limits = c(0, 150)) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
-  scale_fill_viridis_c(name = "NDVI", option = "C") +
   coord_cartesian(clip = "off") +
   theme_ridges(grid = T)
 
 
-# Ridgeplot on multiple spectral bands
-
+# Ridgeplot on multiple spectral bands:
 # Stack columns bands into a single column: transform the dataframe from wide to long format
 
 df_montesole_stacked <- df_montesole %>%
-  pivot_longer(cols = c(montesole_1, montesole_2, montesole_3), names_to = "Band", values_to = "Value") %>%
-  arrange(ID) %>%
-  as.factor(df_montesole_stacked$Band)
+  pivot_longer(cols = c(Red, Green, Blue), names_to = "Band", values_to = "Reflectance") %>%
+  arrange(ID) 
+
+# Turn Band variable into a factor
+
+df_montesole_stacked$Band <- as.factor(df_montesole_stacked$Band)
 
 # free some memory if necessary
 
@@ -115,13 +112,13 @@ rm(df_montesole)
 # according to management
 
 df_montesole_stacked %>%
-  ggplot(aes(y = governo)) +
-  geom_density_ridges(aes(x = Value, fill = Band),
+  ggplot(aes(y = Management)) +
+  geom_density_ridges(aes(x = Reflectance, fill = Band),
                       alpha = 0.8, color = "white") +
   labs(x = "Reflectance",
        y = "Forest management",
-       title = "Difference in spectral bands depending on forest management") +
-  scale_x_continuous(expand = c(0, 0)) +
+       title = "Difference in spectral bands reflectance conditional on forest management") +
+  scale_x_continuous(expand = c(0, 0), limits = c(0, 180)) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
   coord_cartesian(clip = "off") +
   theme_ridges(grid = T)
@@ -129,13 +126,13 @@ df_montesole_stacked %>%
 # according to species
 
 df_montesole_stacked %>%
-  ggplot(aes(y = specie)) +
-  geom_density_ridges(aes(x = Value, fill = Band),
+  ggplot(aes(y = Species)) +
+  geom_density_ridges(aes(x = Reflectance, fill = Band),
                       alpha = 0.8, color = "white") +
   labs(x = "Reflectance",
        y = "First species",
-       title = "Difference in spectral bands depending on forest main species") +
-  scale_x_continuous(expand = c(0, 0)) +
+       title = "Difference in spectral bands reflectance conditional on forest main species") +
+  scale_x_continuous(expand = c(0, 0), limits = c(0, 125)) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
   coord_cartesian(clip = "off") +
   theme_ridges(grid = T)
