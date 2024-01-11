@@ -1,0 +1,160 @@
+#### Libraries ####
+
+library(raster)
+library(terra)
+library(purrr)
+library(furrr)
+library(ggridges)
+library(tidyverse)
+library(forcats)
+
+
+#### Import data ####
+
+setwd("/home/alessio/Tirocinio")
+
+
+LST_300m <- list.files(pattern = "c_gls_LST", recursive = T) %>%
+  
+  map(~rast(.))
+
+# select one raster per each month to simplify calculations
+
+LST_300m <- LST_300m[seq(1, length(LST_300m), by = 4)]
+
+
+#Get only the LST layers
+
+LST <- list()
+
+for (i in 1:24) {
+
+  new_object <- LST_300m[[i]]$LST
+
+  LST[[paste0("LST_", i)]] <- new_object # Add the new object to the list
+  
+  rm(new_object)
+
+}
+
+rm(LST_300m)
+
+#### Pre-processing ####
+
+# crop the rasters on EU
+
+EU_extent <- ext(-11, 30, 35, 47)
+
+LST_EU <- lapply(LST, crop, EU_extent)
+
+# Define the index to split the list (the index should equal the number of Rasters available per year)
+
+split_index <- 12
+
+# Split the list into two based on the index
+
+LST_EU_11 <- LST_EU[1:split_index]
+
+LST_EU_20 <- LST_EU[(split_index + 1):length(LST_EU)]
+
+# Extract LST values for each year
+
+valuesLST_EU_11 <- list()
+
+for (i in 1:12) {
+  
+  new_object <- terra::as.data.frame(LST_EU_11[[i]])
+  
+  valuesLST_EU_11[[paste0("LST_300m_", i)]] <- new_object
+  
+  valuesLST_EU_11[[i]]$month <- as.numeric(paste(i))
+  
+  rm(new_object)
+  
+}
+
+rm(LST_EU_11)
+
+
+valuesLST_EU_20 <- list()
+
+for (i in 1:12) {
+  
+  new_object <- terra::as.data.frame(LST_EU_20[[i]])
+  
+  valuesLST_EU_20[[paste0("LST_300m_", i)]] <- new_object
+  
+  valuesLST_EU_20[[i]]$month <- as.numeric(paste(i))
+  
+  rm(new_object)
+  
+}
+
+rm(LST_EU_20)
+
+
+# Merge into two dataframes
+
+valuesLST_EU_11 <- do.call(rbind, valuesLST_EU_11)
+
+valuesLST_EU_20 <- do.call(rbind, valuesLST_EU_20)
+
+# add a column indicating the year of reference
+
+valuesLST_EU_11 <- valuesLST_EU_11 %>%
+  mutate(year = "2011")
+
+valuesLST_EU_20 <- valuesLST_EU_20 %>%
+  mutate(year = "2020")
+
+# merge the two dataframes
+
+values_LST_EU <- rbind(valuesLST_EU_11, valuesLST_EU_20)
+
+# Order rows according to month
+
+values_LST_EU <- values_LST_EU[order(values_LST_EU$month), ]
+
+# check the variable month levels
+
+unique(values_LST_EU$month)
+
+# turn variable month into a factor
+
+values_LST_EU$month <- as.factor(values_LST_EU$month)
+
+# Change month names
+
+values_LST_EU$month <- fct_recode(values_LST_EU$month, 
+                                   January = "1", 
+                                   February = "2",
+                                   March = "3",
+                                   April = "4",
+                                   May = "5",
+                                   June = "6",
+                                   July = "7",
+                                   August = "8",
+                                   September ="9",
+                                   October = "10",
+                                   November = "11",
+                                   December = "12")
+
+# Convert from Kelvin to Celsius
+
+values_LST_EU$LST <- as.numeric(values_LST_EU$LST) - 273.15
+
+
+#### Ridgeplots ####
+
+values_LST_EU %>%
+  ggplot(aes(y = month)) +
+  geom_density_ridges(aes(x = LST, fill = year), 
+                      alpha = 0.8, color = "white") +
+  labs(x = "LST (°C)",
+       y = "Month",
+       title = 'Comparison of Land Surface Temperature (LST) trend in Italy (2011-2020)',
+       subtitle = 'LST by month comparison for 2011-2020') +
+  scale_x_continuous(expand = c(0, 0), limits = c(-15, 65)) +
+  scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
+  coord_cartesian(clip = "off") +
+  theme_ridges(font_size = 13, grid = TRUE)
