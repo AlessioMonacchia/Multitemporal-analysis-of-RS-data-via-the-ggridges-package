@@ -152,9 +152,8 @@ values_LST_EU %>%
                       alpha = 0.8, color = "white") +
   labs(x = "LST (°C)",
        y = "Month",
-       title = 'Comparison of Land Surface Temperature (LST) trend in Italy (2011-2020)',
+       title = 'Comparison of Land Surface Temperature (LST) trend in EU (2011-2020)',
        subtitle = 'LST by month comparison for 2011-2020') +
   scale_x_continuous(expand = c(0, 0), limits = c(-15, 65)) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
-  coord_cartesian(clip = "off") +
-  theme_ridges(font_size = 13, grid = TRUE)
+  theme_ridges(font_size = 13, grid = T)
