@@ -87,23 +87,31 @@ values_NDVI300_tot <- do.call(rbind, values_NDVI_300m) %>%
 values_NDVI300_tot <- values_NDVI300_tot[order(values_NDVI300_tot$month), ]
 
 
-# Change months names and make month a factor variable for the ridgeplot function requirements
-
-values_NDVI300_tot$month <- replace(values_NDVI300_tot$month,
-                                    
-                                    values_NDVI300_tot$month == 1,
-                                    
-                                    "January")
-
-
 # check the varaible levels
 
 unique(values_NDVI300_tot$month)
 
 
-# turn variable month into a factor
+# turn variable month into a factor for the ridgeplot function requirements
 
 values_NDVI300_tot$month <- as.factor(values_NDVI300_tot$month)
+
+
+# Change months names
+
+values_NDVI300_tot$month <- fct_recode(values_NDVI300_tot$month, 
+                                       January = "1", 
+                                       February = "2",
+                                       March = "3",
+                                       April = "4",
+                                       May = "5",
+                                       June = "6",
+                                       July = "7",
+                                       August = "8",
+                                       September ="9",
+                                       October = "10",
+                                       November = "11",
+                                       December = "12")
 
 
 ## Ridgeplots ####
@@ -111,14 +119,9 @@ values_NDVI300_tot$month <- as.factor(values_NDVI300_tot$month)
 # Simple NDVI ridgeplot with quantiles
 
 ridgeplot_NDVI <- ggplot(values_NDVI300_tot, aes(NDVI, month, fill = factor(stat(quantile)))) +
-  
   stat_density_ridges(
-    
     geom = "density_ridges_gradient", calc_ecdf = TRUE,
-    
-    quantiles = 4, quantile_lines = TRUE
-    
-  )
+    quantiles = 4, quantile_lines = TRUE)
 
 
 # Gradient ridgeplot type
