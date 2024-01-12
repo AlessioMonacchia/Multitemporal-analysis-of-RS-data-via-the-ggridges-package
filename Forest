@@ -49,6 +49,7 @@ montesole <- crop(montesole, buffer)
 
 montesole <- mask(montesole, buffer)
 
+
 # Extract Values ----
 
 df_montesole <- terra::extract(montesole, foreste, df = TRUE)
@@ -89,6 +90,7 @@ df_montesole %>%
   scale_x_continuous(expand = c(0, 0), limits = c(0, 150)) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
   coord_cartesian(clip = "off") +
+  scale_fill_viridis_d(option = "mako") +
   theme_ridges(grid = T)
 
 
@@ -116,12 +118,13 @@ df_montesole_stacked %>%
   geom_density_ridges(aes(x = Reflectance, fill = Band),
                       alpha = 0.8, color = "white") +
   labs(x = "Reflectance",
-       y = "Forest management",
-       title = "Difference in spectral bands reflectance conditional on forest management") +
+       y = "Forest management") +
   scale_x_continuous(expand = c(0, 0), limits = c(0, 180)) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
+  scale_fill_manual(values = c("blue", "green", "red"), labels = c("Blue", "Green", "Red")) +
   coord_cartesian(clip = "off") +
-  theme_ridges(grid = T)
+  ggtitle("Difference in spectral bands reflectance conditional on forest management") +
+  theme_ridges(center = T, grid = T)
 
 # according to species
 
@@ -134,5 +137,38 @@ df_montesole_stacked %>%
        title = "Difference in spectral bands reflectance conditional on forest main species") +
   scale_x_continuous(expand = c(0, 0), limits = c(0, 125)) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
+  scale_fill_manual(values = c("blue", "green", "red"), labels = c("Blue", "Green", "Red")) +
   coord_cartesian(clip = "off") +
-  theme_ridges(grid = T)
+  theme_ridges(center = T, grid = T)
+
+# Color blind friendly version
+
+# Management
+
+df_montesole_stacked %>%
+  ggplot(aes(y = Management)) +
+  geom_density_ridges(aes(x = Reflectance, fill = Band),
+                      alpha = 0.8, color = "white") +
+  labs(x = "Reflectance",
+       y = "Forest management") +
+  scale_x_continuous(expand = c(0, 0), limits = c(0, 180)) +
+  scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
+  scale_fill_viridis_d(option = "plasma") +
+  coord_cartesian(clip = "off") +
+  ggtitle("Difference in spectral bands conditional on forest management") +
+  theme_ridges(center = T, grid = T)
+
+# Species
+
+df_montesole_stacked %>%
+  ggplot(aes(y = Species)) +
+  geom_density_ridges(aes(x = Reflectance, fill = Band),
+                      alpha = 0.8, color = "white") +
+  labs(x = "Reflectance",
+       y = "First species",
+       title = "Difference in spectral bands reflectance conditional on forest main species") +
+  scale_x_continuous(expand = c(0, 0), limits = c(0, 125)) +
+  scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
+  scale_fill_viridis_d(option = "mako") +
+  coord_cartesian(clip = "off") +
+  theme_ridges(center = T, grid = T)
