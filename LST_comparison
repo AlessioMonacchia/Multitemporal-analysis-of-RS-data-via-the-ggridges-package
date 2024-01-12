@@ -156,4 +156,5 @@ values_LST_EU %>%
        subtitle = 'LST by month comparison for 2011-2020') +
   scale_x_continuous(expand = c(0, 0), limits = c(-15, 65)) +
   scale_y_discrete(expand = expansion(mult = c(0.01, 0.25))) +
+  scale_fill_viridis_d(option = "plasma") +
   theme_ridges(font_size = 13, grid = T)
