@@ -20,26 +20,33 @@ foreste <- st_read("/home/alessio/Tirocinio/Foresta/AreeForestali2014BO.shp")
 # Pre-processing ----
 
 # Print the CRS of 'foreste' and 'buffer'
+
 print(st_crs(foreste))
 print(st_crs(buffer))
 
 # If the CRS is not the same, you need to reproject one of them to match the other
 # For example, if 'buffer' has a different CRS than 'foreste', you can reproject 'buffer' to the CRS of 'foreste'
+
 foreste <- st_transform(foreste, crs = st_crs(buffer))
+
 
 # Now, the CRS should be the same
 print(st_crs(foreste))
 print(st_crs(buffer))
 
+
 # Check validity of geometries
 print(st_is_valid(foreste))
 print(st_is_valid(buffer))
 
+
 # Fix invalid geometries
 foreste <- st_make_valid(foreste)
 
+
 # Crop foreste according to Monte Sole buffer
 foreste <- st_intersection(foreste, buffer)
+
 
 # Crop montesole tif according to Monte Sole buffer
 
@@ -59,7 +66,7 @@ df_montesole$montesole_4 <- NULL  # remove useless column
 colnames(df_montesole) <- c("ID", "Red", "Green", "Blue", "Species", "Management")  # modify column names
 
 
-# add columns with information from original forest chart polygons
+# Add columns with information from original forest chart polygons
 
 unique(df_montesole$ID)     # check variable levels
 unique(foreste$TIPO_CARTA)
@@ -101,17 +108,20 @@ df_montesole_stacked <- df_montesole %>%
   pivot_longer(cols = c(Red, Green, Blue), names_to = "Band", values_to = "Reflectance") %>%
   arrange(ID) 
 
+
 # Turn Band variable into a factor
 
 df_montesole_stacked$Band <- as.factor(df_montesole_stacked$Band)
+
 
 # free some memory if necessary
 
 rm(df_montesole)
 
-# here the multi-band Ridgeplot
 
-# according to management
+# Here the multi-band Ridgeplot
+
+# According to management type
 
 df_montesole_stacked %>%
   ggplot(aes(y = Management)) +
@@ -126,7 +136,7 @@ df_montesole_stacked %>%
   ggtitle("Difference in spectral bands reflectance conditional on forest management") +
   theme_ridges(center = T, grid = T)
 
-# according to species
+# According to main species
 
 df_montesole_stacked %>%
   ggplot(aes(y = Species)) +
@@ -141,7 +151,8 @@ df_montesole_stacked %>%
   coord_cartesian(clip = "off") +
   theme_ridges(center = T, grid = T)
 
-# Color blind friendly version
+
+# Color-blind friendly version
 
 # Management
 
