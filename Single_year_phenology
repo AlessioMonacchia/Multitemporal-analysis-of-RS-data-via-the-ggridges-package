@@ -29,7 +29,7 @@ NDVI_300m <- list.files(pattern = "NDVI300_2014", recursive = T) %>%
 NDVI_300m <- NDVI_300m[seq(1, length(NDVI_300m), by = 3)]
 
 
-#Get only the NDVI layers for NDVI 1km
+#Get only the NDVI layers if using the NDVI 1km product
 
 #NDVI <- list()
 
@@ -46,12 +46,7 @@ NDVI_300m <- NDVI_300m[seq(1, length(NDVI_300m), by = 3)]
 ## Pre-processing ####
 
 
-# crop the rasters on EU
-
-# EU_extent <- ext(-11, 30, 35, 47)
-
-
-# crop the rasters on IT
+# crop the rasters on IT extent
 
 IT_extent <- ext(7, 19, 36, 47)
 
@@ -87,7 +82,7 @@ values_NDVI300_tot <- do.call(rbind, values_NDVI_300m) %>%
 values_NDVI300_tot <- values_NDVI300_tot[order(values_NDVI300_tot$month), ]
 
 
-# check the varaible levels
+# check the variable levels
 
 unique(values_NDVI300_tot$month)
 
