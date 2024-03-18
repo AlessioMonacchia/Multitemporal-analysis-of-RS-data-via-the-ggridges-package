@@ -11,11 +11,14 @@ library(forcats)
 
 #### Import data ####
 
+
 setwd("/home/alessio/Tirocinio")
+
 
 # NDVI_1km <- list.files(pattern = "c_gls_NDVI_", recursive = T) %>%
 
 #  map(~rast(.))
+
 
 NDVI_300m <- list.files(pattern = "NDVI300", recursive = T) %>%
   
@@ -28,15 +31,18 @@ NDVI_300m <- NDVI_300m[seq(1, length(NDVI_300m), by = 3)]
 
 #### Pre-processing ####
 
+
 # crop the rasters on IT
 
 IT_extent <- ext(7, 19, 36, 47)
 
 NDVI_300m_crop <- lapply(NDVI_300m, crop, IT_extent)
 
+
 # Define the index to split the list (the index should equal the number of Rasters available per year)
 
 split_index <- 12
+
 
 # Split the list into two based on the index
 
@@ -44,9 +50,11 @@ NDVI_300m_crop14 <- NDVI_300m_crop[1:split_index]
 
 NDVI_300m_crop17 <- NDVI_300m_crop[(split_index + 1):length(NDVI_300m_crop)]
 
+
 # Free some memory for analysis
 
 rm(NDVI_300m, NDVI_300m_crop)
+
 
 # Extract NDVI values
 
@@ -83,6 +91,7 @@ for (i in 1:12) {
 
 rm(NDVI_300m_crop14, NDVI_300m_crop17)
 
+
 # Merge into two dataframes
 
 values_NDVI300_14 <- do.call(rbind, values_NDVI_300_14) %>%
@@ -99,7 +108,8 @@ values_NDVI300_17 <- do.call(rbind, values_NDVI_300_17) %>%
 
 rm(values_NDVI_300_14, values_NDVI_300_17)
 
-# add a column indicating the year of reference
+
+# Add a column indicating the year of reference
 
 values_NDVI300_14 <- values_NDVI300_14 %>%
   mutate(year = "2014")
@@ -107,25 +117,31 @@ values_NDVI300_14 <- values_NDVI300_14 %>%
 values_NDVI300_17 <- values_NDVI300_17 %>%
   mutate(year = "2017")
 
-# merge the two dataframes
+
+# Merge the two dataframes
 
 values_NDVI300 <- rbind(values_NDVI300_14, values_NDVI300_17)
+
 
 # Free some memory for analysis
 
 rm(values_NDVI300_14, values_NDVI300_17)
 
+
 # Order rows according to month
 
 values_NDVI300 <- values_NDVI300[order(values_NDVI300$month), ]
+
 
 # check the variable month levels
 
 unique(values_NDVI300$month)
 
+
 # turn variable month into a factor
 
 values_NDVI300$month <- as.factor(values_NDVI300$month)
+
 
 # Change month names
 
