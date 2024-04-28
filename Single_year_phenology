@@ -48,7 +48,7 @@ NDVI_300m <- NDVI_300m[seq(1, length(NDVI_300m), by = 3)]
 
 # crop the rasters on IT extent
 
-IT_extent <- ext(7, 19, 36, 47)
+Italy <- getData("GADM", country = "ITA", level = 0)
 
 NDVI_300m_crop <- lapply(NDVI_300m, crop, IT_extent)
 
