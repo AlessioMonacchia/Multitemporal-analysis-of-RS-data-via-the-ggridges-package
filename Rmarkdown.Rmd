@@ -47,9 +47,9 @@ Here we crop the rasters to visualize the NDVI in Italy
 
 # crop the rasters on Italian extent
 
-IT_extent <- ext(7, 19, 36, 47)
+Italy <- getData("GADM", country = "ITA", level = 0)
 
-NDVI_300m_crop <- lapply(NDVI_300m, crop, IT_extent)
+NDVI_300m_crop <- lapply(NDVI_300m, crop, Italy)
 
 # plot the results
 
