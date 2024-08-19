@@ -1,7 +1,7 @@
 # Multitemporal-analysis-of-RS-data-via-the-ggridges-package: Internship proposals
 
 
-#### PROPOSAL 1: Plant Phenology Analysis ####
+#### PROPOSAL 1: Plant Phenology Analysis #### _[Single year phenology] _and _[multi-year phenological comparison]___
 
 Scope: Use ridgeplots to display the variation of important vegetation parameters (vegetation indices) related to phenology on annual and multi-year scales.
 
