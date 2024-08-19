@@ -12,7 +12,7 @@ A) Annual Scale: Draw distributions of NDVI values for each month of a single ye
 B) Multi-year Scale: x = NDVI, y = month, fill = year
 
 
-#### PROPOSAL 2: Analysis on Emilia-Romagna Forest Maps ####
+#### PROPOSAL 2: Analysis on Emilia-Romagna Forest Maps #### [_Forest_]
 
 Scope: Use ridgeplots to draw the distribution of values of different vegetation indices in relation to the forest type and forest management.
 
