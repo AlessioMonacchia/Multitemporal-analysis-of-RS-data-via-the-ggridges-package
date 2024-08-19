@@ -31,7 +31,7 @@ Procedure:
 4) Ridgeplot: x = VI, y = forest types, fill = spectral bands
 
 
-#### PROPOSAL 3: Monitoring Copernicus Variables ####
+#### PROPOSAL 3: Monitoring Copernicus Variables #### [_Multi-year_LST_comparison_]
 
 Example: Land Surface Temperature
 Plot the change in the distribution of the Land Surface Temperature variable from 2010 to 2020, categorizing by country/geographic gradient (e.g., latitude). Useful to visualize if and how climate changes in the last 10 years (temporal gradient) have unevenly or uniformly modified surface temperatures based on country or latitude (geographic gradient).
